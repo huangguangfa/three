@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../lib/three.js"></script>
+</head>
+<body>
+    <div id="wrap-three" style="width: 400px;height: 400px;"></div>
+</body>
+</html>
+
+<script>
+    // 创建场景
+    const scene = new THREE.Scene;
+    // 创建相机（透视摄像机）
+    const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+    // 创建渲染器
+    const renderer = new THREE.WebGLRenderer();
+    // 设置渲染器大小
+    renderer.setSize(400, 400);
+    // 挂载到页面
+    document.getElementById("wrap-three").appendChild(renderer.domElement);
+    renderer.render( scene, camera );
+</script>
