@@ -18,6 +18,15 @@
 			import { OrbitControls } from '../lib/examples/jsm/controls/OrbitControls.js';
 			import { MD2CharacterComplex } from '../lib/examples/jsm/misc/MD2CharacterComplex.js';
 			import { Gyroscope } from '../lib/examples/jsm/misc/Gyroscope.js';
+			import { GLTFLoader } from '../lib/examples/jsm/loaders/GLTFLoader.js';
+
+			// 模型选中发光 start-------
+				import { EffectComposer } from '../lib/examples/jsm/postprocessing/EffectComposer.js';
+				import { RenderPass } from '../lib/examples/jsm/postprocessing/RenderPass.js';
+				import { OutlinePass } from '../lib/examples/jsm/postprocessing/OutlinePass.js';
+				import { ShaderPass } from '../lib/examples/jsm/postprocessing/ShaderPass.js';
+				import { FXAAShader } from "../lib/examples/jsm/shaders/FXAAShader.js"
+			// 模型选中发光 end -------
 			// 获取屏幕的宽高
 			let SCREEN_WIDTH = window.innerWidth;
 			let SCREEN_HEIGHT = window.innerHeight;
@@ -30,6 +39,8 @@
 			scene, 
 			// 渲染器
 			renderer;
+			let composer;
+			let outlinePass;
 
 			const characters = [];
 			let nCharacters = 0;
@@ -120,6 +131,23 @@
 				// 阴影投放类型
 				renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+				composer = new EffectComposer(renderer);
+				let renderPass = new RenderPass(scene, camera);
+				composer.addPass(renderPass);
+				outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
+				outlinePass.pulsePeriod = 2; //数值越大，律动越慢
+				outlinePass.visibleEdgeColor.set('#130AF2'); // 选中颜色
+				outlinePass.hiddenEdgeColor.set( 0x000000 );// 阴影颜色
+				outlinePass.usePatternTexture = false; // 使用纹理覆盖？
+				outlinePass.edgeStrength = 5; // 高光边缘强度
+				outlinePass.edgeGlow = 1; // 边缘微光强度
+				outlinePass.edgeThickness = 1; // 高光厚度
+				let effectFXAA = new ShaderPass(FXAAShader)
+				effectFXAA.uniforms.resolution.value.set(1 / window.innerWidth, 1 / window.innerHeight)
+				effectFXAA.renderToScreen = true
+				composer.addPass(outlinePass);
+				composer.addPass(effectFXAA)
+
 				// 事件的绑定
 				window.addEventListener( 'resize', onWindowResize );
 				document.addEventListener( 'keydown', onKeyDown );
@@ -152,6 +180,18 @@
 					crouchSpeed: 175
 
 				};
+				const loaderGLF = new GLTFLoader();
+				loaderGLF.load( 'https://blogs-macos.oss-cn-shenzhen.aliyuncs.com/threeJS/models/fbx/house/suv.glb', function ( gltf ) {
+					let gltfModule = gltf.scene;
+					gltfModule.scale.set( 100, 100, 100 );
+					scene.add( gltfModule );
+					let list = []
+					gltfModule.traverse(function (child) {
+						list.push(child)
+					})
+					outlinePass.selectedObjects = list
+
+				})
 
 				const nRows = 1;
 				const nSkins = configOgro.skins.length;
